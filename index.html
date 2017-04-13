@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <title>Visual Regression Testing using Capybara & PhantomJS</title>
+    <link rel="stylesheet" type="text/css" href="build/build.css">
+  </head>
+  <body>
+    <article>
+      <section>
+        <h1>Visual Regression Testing</h1>
+        <h3>using Capybara & PhantomJS</h3>
+      </section>
+      <section>
+        <h2>The team</h2>
+      </section>
+      <section data-bespoke-backdrop="domino">
+        <h2>Some issues we were having</h2><br>
+        <ul>
+          <li>Bad reusage of class names</li>
+          <li>Lack of any type of testing</li>
+          <li>Maps: hard to test</li>
+          <li>Daily hot-fixes</li>
+          <li>Very long sanity check</li>
+          <li>New features everywhere</li>
+        </ul>
+      </section>
+      <section>
+        <h2>Integration Tests</h2><img src="./images/integrationtests.png" loop="1">
+      </section>
+      <section>
+        <h2>Visual Regression Tests</h2><img src="./images/visualregressiontests.png">
+      </section>
+      <section data-bespoke-backdrop="eye">
+        <h2>Visual Regression Testing</h2>
+      </section>
+      <section>
+        <h3>This is how it should look</h3><img src="./images/expected.png" class="example-img">
+      </section>
+      <section>
+        <h3>Ups! Something went wrong</h3><img src="./images/test.png" class="example-img">
+        <p class="side-note">* This actually never happend</p>
+      </section>
+      <section>
+        <h3>Look... This is what changed</h3><img src="./images/difference.png" class="example-img">
+      </section>
+      <section data-bespoke-backdrop="kingofthehill">
+        <h1>The setup</h1>
+      </section>
+      <section>
+        <h2>Actors</h2>
+      </section>
+      <section data-bespoke-backdrop="rspec">
+        <h2>Rspec</h2>
+        <h4>v 2.14.1</h4>
+      </section>
+      <section data-bespoke-backdrop="capybara">
+        <h2>Capybara</h2>
+        <h4>v 2.2.1</h4>
+      </section>
+      <section>
+        <ul>
+          <li>Integration (or Acceptance) test framework</li>
+          <li>Works out of the box</li>
+          <li>Driver agnostic</li>
+          <li>Intuitive API
+            <ul>
+              <li>page object</li>
+              <li>visit(path)</li>
+              <li>click(selector)</li>
+              <li>fill_in(selector, with: value)</li>
+              <li>page.has_selector?(selector)</li>
+              <li>find(selector)</li>
+            </ul>
+          </li>
+        </ul>
+      </section>
+      <section data-bespoke-backdrop="phantomjs">
+        <h2>PhantomJS</h2>
+        <h4>v 2.1.1</h4>
+      </section>
+      <section>
+        <ul>
+          <li>Headless webkit browser</li>
+          <li><b>Screen capture</b></li>
+          <li>Page automation</li>
+          <li>Network monitoring</li>
+        </ul>
+      </section>
+      <section>
+        <h3>Example</h3>
+        <pre><code class="language-javascript">var page = require('webpage').create();
+
+page.open('http://github.com/', function() {
+  page.render('github.png');
+  phantom.exit();
+});
+</code></pre>
+      </section>
+      <section data-bespoke-backdrop="poltergeist">
+        <h2>Poltergeist</h2>
+        <h4>v 1.10.0</h4>
+      </section>
+      <section>
+        <ul>
+          <li>Capybara Driver for PhantomJS</li>
+          <li>Extends Capybara DSL with PhantomJS features
+            <ul>
+              <li>page.evaluate_script</li>
+              <li>page.execute_script</li>
+              <li>page.save_screenshot</li>
+              <li>page.driver.click(x, y)</li>
+              <li>D&D</li>
+            </ul>
+          </li>
+        </ul>
+      </section>
+      <section>
+        <h3>Poltergeist glues together Capybara and PhantomJS</h3>
+      </section>
+      <section>
+        <h2>rspec-page-regression</h2>
+      </section>
+      <section>
+        <ul>
+          <li>Provides the mechanism of visual regression tests, via a Rspec matcher</li>
+          <li>Uses PhantomJS via Poltergeist (call to save_screenshot)</li>
+          <li>Handles image comparison</li>
+        </ul>
+      </section>
+      <section>
+        <h3>How it works?</h3>
+      </section>
+      <section>
+        <pre><code class="language-javascript">context "popup help" do
+  before(:each) do
+    click_button "Help"
+  end
+  
+  it { expect(page).to match_expectation }
+end
+</code></pre>
+      </section>
+      <section>
+        <h3>First time we run the test</h3><img src="./images/matcher1.png" class="example-img fixed">
+      </section>
+      <section>
+        <h3>Ups! Something went wrong (again)</h3><img src="./images/matcher2.png" class="example-img fixed">
+      </section>
+      <section>
+        <h3>Everything 👌🏼</h3><img src="./images/matcher3.png" class="example-img fixed">
+      </section>
+      <section data-bespoke-backdrop="config">
+        <h2>Config</h2>
+      </section>
+      <section>
+        <h2>Capybara & PhantomJS Config</h2>
+        <h3>Register driver</h3>
+        <pre class="code-snippet code-small"><code class="language-javascript">require 'rspec/page-regression'
+require 'capybara/rspec'
+require 'capybara/poltergeist'
+
+Capybara.register_driver :poltergeist do |app|
+  poltergeist_options = {
+    phantomjs: Phantomjs.path,
+    js_errors: false,
+    debug: true,
+    phantomjs_logger: File.open('path', 'a'),
+    phantomjs_options: [
+      '--debug=true',
+      '--load-images=yes',
+      //...
+    ]
+  }
+  
+  Capybara::Poltergeist::Driver.new(app, poltergeist_options)
+end
+</code></pre>
+        <p class="file-name">spec/capybara_helper.rb</p>
+      </section>
+      <section>
+        <h3>What if I want to toggle between tests with and without images?</h3>
+      </section>
+      <section>
+        <h3>Define one driver for each scenario</h3>
+        <pre class="code-snippet code-small"><code class="language-javascript">//...
+
+Capybara.register_driver :poltergeist_without_images do |app|
+  poltergeist_options = {
+    //...
+    phantomjs_options: [
+      //...
+      '--load-images=no'
+    ]
+  }
+  
+  Capybara::Poltergeist::Driver.new(app, poltergeist_options)
+end
+
+Capybara.register_driver :poltergeist_with_images do |app|
+  poltergeist_options = {
+    //...
+    phantomjs_options: [
+      //...
+      '--load-images=yes'
+    ]
+  }
+  
+  Capybara::Poltergeist::Driver.new(app, poltergeist_options)
+end
+</code></pre>
+        <p class="file-name">spec/capybara_helper.rb</p>
+      </section>
+      <section>
+        <h3>Set wait time</h3>
+        <pre class="code-snippet code-small"><code class="language-javascript">//...
+Capybara.default_wait_time = 8 // Default: 5
+</code></pre>
+        <p class="file-name">spec/capybara_helper.rb</p>
+      </section>
+      <section>
+        <h2>Rspec Config</h2>
+        <h3>Set drivers</h3>
+        <pre class="code-snippet code-small"><code class="language-javascript">require 'capybara_helper'
+
+RSpec.configure do |config|
+  //...
+  // No images by default
+  Capybara.javascript_driver = :poltergeist_without_images
+  
+  config.before(type: :feature) do
+    // Include images if it is declared on the spec
+    if example.metadata[:images]
+      Capybara.javascript_driver = :poltergeist_with_images
+    end
+  end
+  //...
+end
+</code></pre>
+        <p class="file-name">spec/spec_helper.rb</p>
+      </section>
+      <section>
+        <h3>Disable transactional fixtures</h3>
+        <pre class="code-snippet"><code class="language-javascript">RSpec.configure do |config|
+  //...
+  config.use_transactional_fixtures = false
+  //...
+end
+</code></pre>
+        <p class="file-name">spec/spec_helper.rb</p>
+      </section>
+      <section>
+        <h3>Config DatabaseCleaner</h3>
+        <pre class="code-snippet code-small"><code class="language-javascript">RSpec.configure do |config|
+  //...
+  config.before(:each) do
+    DatabaseCleaner.strategy = if example.metadata[:js]
+      :truncation
+    else
+      :transaction
+    end
+    DatabaseCleaner.start
+  end
+  
+  config.after(:each) do
+    DatabaseCleaner.clean
+  end
+//...</code>
+          <end></end></pre>
+        <p class="file-name">spec/spec_helper.rb</p>
+      </section>
+      <section>
+        <h2>The specs</h2><br>
+        <pre class="code-snippet code-small"><code class="language-javascript">require 'spec_helper'
+
+feature "Pricing", js: true, images: true do
+  let(:user) { create(:user) }
+  
+  it 'should correctly render pricing page' do
+    sign_in_with user.email, user.password
+    visit pricing_path
+    
+    page.should match_expectation
+  end
+end
+
+</code></pre>
+        <p class="file-name">spec/features/pricing/pricing_spec.rb</p>
+      </section>
+      <section data-bespoke-backdrop="code">
+        <h2>Demo</h2>
+      </section>
+      <section data-bespoke-backdrop="roadmap">
+        <h2>Roadmap</h2>
+      </section>
+      <section>
+        <ul>
+          <li>Integration with Jenkins</li>
+          <li>Comparison threshold</li>
+          <li>Flexbox bugs</li>
+        </ul>
+      </section>
+      <section data-bespoke-backdrop="cons">
+        <h2>Cons</h2>
+      </section>
+      <section>
+        <ul>
+          <li>Time ⚠️</li>
+          <li>DatabaseCleaner</li>
+          <li>Tests will fail for every small change</li>
+          <li>Commited images</li>
+        </ul>
+      </section>
+      <section>
+        <h3>Thanks!</h3>
+      </section>
+    </article>
+    <script src="build/build.js"></script>
+  </body>
+</html>
